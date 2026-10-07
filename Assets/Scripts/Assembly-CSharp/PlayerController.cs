@@ -7987,7 +7987,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (inputDevice == InputDevice.XperiaPlay)
 		{
-#if !UNITY_STANDALONE
+#if UNITY_ANDROID
 			if (AndroidInput.touchCountSecondary > 0)
 			{
 				androidTouch = AndroidInput.GetSecondaryTouch(0);

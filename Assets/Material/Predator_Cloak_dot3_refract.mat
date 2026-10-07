@@ -21,10 +21,10 @@ Material:
     - _NormalMap:
         m_Texture: {fileID: 2800000, guid: bf5f57437568cbb42aa69bef9ec5d472, type: 3}
         m_Scale: {x: 1, y: 1}
-        m_Offset: {x: -0.30244064, y: 0.30244064}
+        m_Offset: {x: -0.87148, y: 0.87148}
     - _NormalMap2:
         m_Texture: {fileID: 2800000, guid: c71f332d44d45934e97132da4429ea5e, type: 3}
         m_Scale: {x: 0.5, y: 0.5}
-        m_Offset: {x: 0.30244064, y: -0.30244064}
+        m_Offset: {x: 0.87148, y: -0.87148}
     m_Floats: []
     m_Colors: []

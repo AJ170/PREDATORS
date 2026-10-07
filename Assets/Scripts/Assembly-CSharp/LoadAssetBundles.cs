@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class LoadAssetBundles : MonoBehaviour
 {
+#if UNITY_ANDROID || UNITY_IOS
 	private const float networkIdleTimeout = 10f;
 
 	public Button buttonRetry;
@@ -177,4 +178,5 @@ public class LoadAssetBundles : MonoBehaviour
 		PlatformDependent.LoadLevelWithLoadingScreen("MainMenu3D_iPad");
 #endif
 	}
+#endif
 }

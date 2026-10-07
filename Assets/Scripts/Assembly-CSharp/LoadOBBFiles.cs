@@ -17,10 +17,10 @@ public class LoadOBBFiles : MonoBehaviour
 
     private void Start()
     {
-#if UNITY_EDITOR || UNITY_STANDALONE
-        MonoBehaviour.print("PC/Editor: OBB integration skipped (SplashScreen owns boot transition).");
-#else
+#if UNITY_ANDROID
         PlayMovieLoadMenu();
+#else
+        MonoBehaviour.print("OBB integration skipped (video intro component owns boot transition).");
 #endif
     }
 
@@ -54,6 +54,7 @@ public class LoadOBBFiles : MonoBehaviour
         bundleFullPath = "jar:file://" + mainPath + "!/PredatorsCompiledScenes.unity3d";
         MonoBehaviour.print("BUndle full path: " + bundleFullPath);
         download = WWW.LoadFromCacheOrDownload(bundleFullPath, 1312);
+#if UNITY_ANDROID
         if (Caching.IsVersionCached(bundleFullPath, 1312))
         {
             MonoBehaviour.print("All assets included,starting game");
@@ -72,6 +73,7 @@ public class LoadOBBFiles : MonoBehaviour
             MonoBehaviour.print("Including downloaded assets");
             StartCoroutine(LoadAssetBundleFromOBB());
         }
+#endif
     }
 
     private IEnumerator WaitForFileDownload()
@@ -141,7 +143,7 @@ public class LoadOBBFiles : MonoBehaviour
     private IEnumerator PlayMovieCR()
     {
         yield return null;
-#if !UNITY_STANDALONE
+#if UNITY_ANDROID
         Handheld.PlayFullScreenMovie("SplashVid.m4v", Color.black, FullScreenMovieControlMode.CancelOnInput);
         yield return new WaitForSeconds(0.2f);
         PlatformDependent.LoadLevelWithLoadingScreen("MainMenu3D_iPad");
