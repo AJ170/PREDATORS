@@ -42,6 +42,48 @@ public static class PlatformDependent
 		return p == RuntimePlatform.WindowsPlayer || p == RuntimePlatform.OSXPlayer || p == RuntimePlatform.LinuxPlayer || p == RuntimePlatform.WindowsEditor || p == RuntimePlatform.OSXEditor || p == RuntimePlatform.LinuxEditor;
 	}
 
+	public static bool IsVita()
+	{
+#if UNITY_PSP2
+		return true;
+#else
+		return false;
+#endif
+	}
+
+	private const float VITA_CURSOR_SPEED = 800f;
+
+	private static Vector2 vitaCursorPosition;
+
+	private static bool vitaCursorInitialized;
+
+	private static int vitaCursorUpdatedFrame = -1;
+
+	private static void UpdateVitaCursorPosition()
+	{
+		if (vitaCursorUpdatedFrame == Time.frameCount)
+		{
+			return;
+		}
+		vitaCursorUpdatedFrame = Time.frameCount;
+		if (!vitaCursorInitialized)
+		{
+			vitaCursorPosition = new Vector2(Screen.width / 2f, Screen.height / 2f);
+			vitaCursorInitialized = true;
+		}
+		float stickX = Input.GetAxis("Left Joystick Horizontal");
+		float stickY = Input.GetAxis("Left Joystick Vertical");
+		// unscaledDeltaTime so the cursor still moves while Time.timeScale is 0 during pause
+		vitaCursorPosition.x = Mathf.Clamp(vitaCursorPosition.x + stickX * VITA_CURSOR_SPEED * Time.unscaledDeltaTime, 0f, Screen.width);
+		vitaCursorPosition.y = Mathf.Clamp(vitaCursorPosition.y - stickY * VITA_CURSOR_SPEED * Time.unscaledDeltaTime, 0f, Screen.height);
+	}
+
+	private static void PositionCursorGUITexture(GUITexture mouseCursor, Vector2 screenPosition)
+	{
+		Rect pixelInset = mouseCursor.pixelInset;
+		mouseCursor.pixelInset = new Rect(screenPosition.x - pixelInset.height / 3f, screenPosition.y - pixelInset.height, pixelInset.width, pixelInset.height);
+	}
+
 	public static string TranslateKeybinds(string text)
 	{
 		if (!IsPC() || string.IsNullOrEmpty(text))
@@ -76,6 +118,14 @@ public static class PlatformDependent
 
 	public static void HideMouseCursor(GUITexture mouseCursor)
 	{
+		if (IsVita())
+		{
+			if (mouseCursor != null)
+			{
+				mouseCursor.gameObject.SetActive(false);
+			}
+			return;
+		}
 		UnityEngine.Object.Destroy(mouseCursor.gameObject);
 	}
 
@@ -90,6 +140,10 @@ public static class PlatformDependent
 
 	public static void SetScreenOrientation(bool inUpdate)
 	{
+		if (IsVita())
+		{
+			Cursor.visible = false;
+		}
 		bool flag = IsReverseOrientation();
 		if (!inUpdate)
 		{
@@ -157,6 +211,16 @@ public static class PlatformDependent
 
 	public static void UpdateMouseCursorGUITexture(GUITexture mouseCursor)
 	{
+		if (!IsVita() || mouseCursor == null)
+		{
+			return;
+		}
+		if (!mouseCursor.gameObject.activeSelf)
+		{
+			mouseCursor.gameObject.SetActive(true);
+		}
+		UpdateVitaCursorPosition();
+		PositionCursorGUITexture(mouseCursor, vitaCursorPosition);
 	}
 
 	public static int InputTouchCount()
@@ -166,6 +230,10 @@ public static class PlatformDependent
 			return Input.touchCount;
 		}
 		if (Input.GetMouseButton(0) || Input.GetMouseButtonUp(0))
+		{
+			return 1;
+		}
+		if (IsVita() && (Input.GetKey("joystick button 0") || Input.GetKeyUp("joystick button 0")))
 		{
 			return 1;
 		}
@@ -182,6 +250,26 @@ public static class PlatformDependent
 			result.phase = touch.phase;
 			result.fingerId = touch.fingerId;
 			result.deltaPosition = touch.deltaPosition;
+			return result;
+		}
+		if (IsVita())
+		{
+			UpdateVitaCursorPosition();
+			result.position = vitaCursorPosition;
+			result.fingerId = 0;
+			result.deltaPosition = Vector2.zero;
+			if (Input.GetKeyDown("joystick button 0"))
+			{
+				result.phase = TouchPhase.Began;
+			}
+			else if (Input.GetKeyUp("joystick button 0"))
+			{
+				result.phase = TouchPhase.Ended;
+			}
+			else
+			{
+				result.phase = TouchPhase.Stationary;
+			}
 			return result;
 		}
 		result.position = Input.mousePosition;
@@ -273,6 +361,24 @@ public static class PlatformDependent
 
 	public static void UpdateMouseCursorGUITexture(bool Paused, GUITexture mouseCursor)
 	{
+		if (!IsVita() || mouseCursor == null)
+		{
+			return;
+		}
+		if (!Paused)
+		{
+			if (mouseCursor.gameObject.activeSelf)
+			{
+				mouseCursor.gameObject.SetActive(false);
+			}
+			return;
+		}
+		if (!mouseCursor.gameObject.activeSelf)
+		{
+			mouseCursor.gameObject.SetActive(true);
+		}
+		UpdateVitaCursorPosition();
+		PositionCursorGUITexture(mouseCursor, vitaCursorPosition);
 	}
 
 	public static bool ReleasedLeftStick(int leftStickTouchId, int p)
@@ -348,5 +454,15 @@ public static class PlatformDependent
 
 	public static void UpdateMouseCursorGUITextureInTrophyRoom(GUITexture mouseCursor)
 	{
+		if (!IsVita() || mouseCursor == null)
+		{
+			return;
+		}
+		if (!mouseCursor.gameObject.activeSelf)
+		{
+			mouseCursor.gameObject.SetActive(true);
+		}
+		UpdateVitaCursorPosition();
+		PositionCursorGUITexture(mouseCursor, vitaCursorPosition);
 	}
 }

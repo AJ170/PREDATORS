@@ -2149,6 +2149,7 @@ public class MissionSelect : MonoBehaviour
 						cameraTargetRotation = cameraPositionTrophies.rotation;
 						return;
 					}
+					goodIndex = -1;
 					for (int i = 0; i < gearsOnTheWall.Length; i++)
 					{
 						if (gearsOnTheWall[i].GearTransform == hitCollider.transform)
@@ -2156,6 +2157,10 @@ public class MissionSelect : MonoBehaviour
 							goodIndex = i;
 							break;
 						}
+					}
+					if (goodIndex < 0)
+					{
+						return;
 					}
 					cameraMoved = true;
 					cameraTargetPosition = hitCollider.transform.position + new Vector3(-0.08f, 0.005f, 0.06f);

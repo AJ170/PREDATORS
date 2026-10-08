@@ -60,7 +60,8 @@ public class PlayerController : MonoBehaviour
 	{
 		Touch = 0,
 		XperiaPlay = 1,
-		PC = 2
+		PC = 2,
+		VitaController = 3
 	}
 
 	public class Ability
@@ -7610,9 +7611,9 @@ public class PlayerController : MonoBehaviour
 		{
 			StartCoroutine(FadeToBlack());
 		}
-		if (PlatformDependent.IsPC())
+		if (PlatformDependent.IsPC() || PlatformDependent.IsVita())
 		{
-			inputDevice = InputDevice.PC;
+			inputDevice = PlatformDependent.IsPC() ? InputDevice.PC : InputDevice.VitaController;
 			if (hud != null)
 			{
 				if (hud.LeftStick != null) hud.LeftStick.gameObject.SetActiveRecursively(false);
@@ -7637,7 +7638,14 @@ public class PlayerController : MonoBehaviour
 				if (hud.GUI_WeaponDisc_Inactive != null) hud.GUI_WeaponDisc_Inactive.SetActiveRecursively(false);
 				if (hud.GUI_WeaponNetGun_Active != null) hud.GUI_WeaponNetGun_Active.SetActiveRecursively(false);
 				if (hud.GUI_WeaponNetGun_Inactive != null) hud.GUI_WeaponNetGun_Inactive.SetActiveRecursively(false);
-				if (hud.buttonPause != null) hud.buttonPause.pollForKey = KeyCode.Escape;
+				if (hud.buttonPause != null)
+				{
+					hud.buttonPause.pollForKey = KeyCode.Escape;
+					if (PlatformDependent.IsVita() && hud.buttonPause.pollForKeys != null)
+					{
+						hud.buttonPause.pollForKeys.Add(KeyCode.JoystickButton7);
+					}
+				}
 				if (hud.tipTextures != null)
 				{
 					for (int tipIdx = 0; tipIdx < hud.tipTextures.Length; tipIdx++)
@@ -7658,8 +7666,11 @@ public class PlayerController : MonoBehaviour
 					}
 				}
 			}
-			Cursor.visible = true;
-			Cursor.lockState = CursorLockMode.None;
+			if (PlatformDependent.IsPC())
+			{
+				Cursor.visible = true;
+				Cursor.lockState = CursorLockMode.None;
+			}
 		}
 	}
 
@@ -8039,6 +8050,28 @@ public class PlayerController : MonoBehaviour
 		texture2IsTapped = pressedBlockButtonUp;
 	}
 
+	private void UpdateVitaController(ref bool pressedAttackButtonDown, ref bool pressedAttackButtonUp, ref bool pressedBlockButtonDown, ref bool pressedBlockButtonUp, ref bool pressedCloak, ref bool pressedMeleeRangeChange, ref bool pressedMeleeWeaponChange, ref bool pressedThermal)
+	{
+		// Left Joystick Vertical is registered without invert, so raw "up" reads negative; flip here to match PC's Vertical convention.
+		lDiff3 = new Vector3(Input.GetAxis("Left Joystick Horizontal"), 0f, 0f - Input.GetAxis("Left Joystick Vertical"));
+		if (blocking)
+		{
+			lDiff3 = Vector3.zero;
+		}
+		moved = lDiff3.sqrMagnitude > 0f;
+		pressedMeleeWeaponChange = Input.GetKeyDown("joystick button 4");
+		pressedMeleeRangeChange = Input.GetKeyDown("joystick button 5");
+		pressedThermal = Input.GetKeyDown("joystick button 3");
+		pressedCloak = Input.GetKeyDown("joystick button 1");
+		pressedAttackButtonDown = Input.GetKeyDown("joystick button 0");
+		pressedAttackButtonUp = Input.GetKeyUp("joystick button 0");
+		pressedBlockButtonDown = Input.GetKeyDown("joystick button 2");
+		pressedBlockButtonUp = Input.GetKeyUp("joystick button 2");
+		texture4IsTapped = pressedBlockButtonUp;
+		texture3IsTapped = pressedBlockButtonUp;
+		texture2IsTapped = pressedBlockButtonUp;
+	}
+
 	private void Update()
 	{
 		texture4IsTapped = false;
@@ -8379,6 +8412,10 @@ public class PlayerController : MonoBehaviour
 			if (inputDevice == InputDevice.PC)
 			{
 				UpdatePC(ref pressedAttackButtonDown, ref pressedAttackButtonUp, ref pressedBlockButtonDown, ref pressedBlockButtonUp, ref pressedCloak, ref pressedMeleeRangeChange, ref pressedMeleeWeaponChange, ref pressedThermal);
+			}
+			else if (inputDevice == InputDevice.VitaController)
+			{
+				UpdateVitaController(ref pressedAttackButtonDown, ref pressedAttackButtonUp, ref pressedBlockButtonDown, ref pressedBlockButtonUp, ref pressedCloak, ref pressedMeleeRangeChange, ref pressedMeleeWeaponChange, ref pressedThermal);
 			}
 			else
 			{
