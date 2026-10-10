@@ -25,7 +25,7 @@ public class ExampleRenderTexturePlayback : MonoBehaviour
 	void Start()
     {
         PSVitaVideoPlayer.Init(m_RenderTexture);
-        PSVitaVideoPlayer.Play(m_MoviePath, PSVitaVideoPlayer.Looping.Continuous, PSVitaVideoPlayer.Mode.RenderToTexture);
+        PSVitaVideoPlayer.Play(m_MoviePath, PSVitaVideoPlayer.Looping.None, PSVitaVideoPlayer.Mode.RenderToTexture);
     }
 
     void OnPreRender()
